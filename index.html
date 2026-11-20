@@ -14,6 +14,7 @@ body{display:flex;flex-direction:column;background:radial-gradient(circle at 50%
 header{position:relative;text-align:center;padding:14px 0 6px}
 .orb{width:70px;height:70px;margin:0 auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e0b3ff,#8a2be2 60%,#3a0f6b);box-shadow:0 0 40px #9b4dff;animation:puls 3s ease-in-out infinite}
 .orb.denkt{animation-duration:0.8s}
+.orb.spricht{animation-duration:1.2s;box-shadow:0 0 70px #d08bff}
 @keyframes puls{50%{transform:scale(1.08);box-shadow:0 0 60px #b86bff}}
 h1{margin:8px 0 0;font-size:24px;letter-spacing:4px}
 .knoepfe{position:absolute;top:12px;right:14px;display:flex;gap:8px}
@@ -26,13 +27,13 @@ h1{margin:8px 0 0;font-size:24px;letter-spacing:4px}
 footer{display:flex;gap:8px;padding:12px 16px}
 #feld{flex:1;min-width:0;padding:12px 16px;border-radius:24px;border:1px solid #5b2a9e;background:#1d0d3a;color:#f1e6ff;font-size:16px;outline:none}
 button{padding:0 22px;border-radius:24px;border:none;background:#9b4dff;color:#fff;font-size:16px;cursor:pointer}
-#einst{display:none;position:fixed;inset:0;background:rgba(10,3,24,.92);padding:20px;overflow-y:auto;z-index:10}
+#einst{display:none;position:fixed;inset:0;background:rgba(10,3,24,.95);padding:20px;overflow-y:auto;z-index:10}
 #einst .box{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
 #einst h2{margin:0 0 4px}
 #einst label{font-size:14px;color:#c9a7f0}
 #einst input,#einst textarea,#einst select{width:100%;padding:12px;border-radius:12px;border:1px solid #5b2a9e;background:#1d0d3a;color:#f1e6ff;font-size:16px;font-family:inherit}
-#einst textarea{min-height:120px}
-#einst textarea#promptfeld{min-height:200px}
+#einst textarea{min-height:100px}
+#einst textarea#promptfeld{min-height:180px}
 #einst .zeile{display:flex;gap:10px}
 #einst .zeile button{height:44px;flex:1}
 #einst .zweit{background:#2a1450;border:1px solid #5b2a9e}
@@ -74,6 +75,335 @@ small a{color:#b86bff}
 <label for="modellfeld">Modell</label>
 <input id="modellfeld" list="modelle" autocomplete="off" placeholder="Modellname">
 <datalist id="modelle"></datalist>
-<small>Gemini: <code>gemini-flash-latest</code> ist deutlich lebendiger als Lite, aber knapper im Gratis-Kontingent. Offene Modelle: <a href="https://openrouter.ai/models?max_price=0" target="_blank">kostenlose Liste</a>.</small>
+<small>Gemini: <code>gemini-flash-lite-latest</code> ist schnell, <code>gemini-flash-latest</code> lebendiger, aber knapper im Gratis-Kontingent. Offene Modelle: <a href="https://openrouter.ai/models?max_price=0" target="_blank">kostenlose Liste</a>.</small>
 
-<label for="tempfeld
+<label for="ttsfeld">Stimmen-Modell (Gemini)</label>
+<input id="ttsfeld" autocomplete="off" placeholder="gemini-3.8-flash-tts">
+
+<label for="stimmefeld">Stimme</label>
+<input id="stimmefeld" autocomplete="off" placeholder="Kore">
+
+<label for="tempfeld">Kreativität (0 = sachlich, 1 = locker, 2 = wild)</label>
+<input id="tempfeld" type="number" min="0" max="2" step="0.1">
+
+<label for="promptfeld">Miras Persönlichkeit (System-Anweisung)</label>
+<textarea id="promptfeld"></textarea>
+
+<label for="gedfeld">Was Mira über dich weiß</label>
+<textarea id="gedfeld" placeholder="z. B. Name: Julien, wohnt in Hürth ..."></textarea>
+
+<div class="zeile">
+<button id="speichern">Speichern</button>
+<button id="schliessen" class="zweit">Schließen</button>
+</div>
+<div class="zeile">
+<button id="verlaufweg" class="zweit">Gespräch löschen</button>
+<button id="teststimme" class="zweit">Stimme testen</button>
+</div>
+</div>
+</div>
+
+<script>
+(function(){
+var STANDARD_PROMPT = "Du bist Mira, die persönliche Assistentin von Julien. Du sprichst Deutsch, bist warm, aufmerksam und ein bisschen witzig, wie Jarvis aus Iron Man, nur freundlicher. Antworte kurz und natürlich, meist in ein bis drei Sätzen, weil deine Antworten laut gesprochen werden. Keine Aufzählungen, kein Markdown, keine Sternchen.";
+
+var EINST = {
+  anbieter: "gemini",
+  gkey: "",
+  orkey: "",
+  modell: "gemini-flash-lite-latest",
+  tts: "gemini-3.8-flash-tts",
+  stimme: "Kore",
+  temp: 0.9,
+  prompt: STANDARD_PROMPT,
+  ged: "Name: Julien. Wohnort: Hürth bei Köln.",
+  ton: true
+};
+
+function laden(){
+  try{
+    var s = localStorage.getItem("mira_einst");
+    if(s){ var o = JSON.parse(s); for(var k in o){ EINST[k] = o[k]; } }
+  }catch(e){}
+}
+function speichern(){
+  try{ localStorage.setItem("mira_einst", JSON.stringify(EINST)); }catch(e){}
+}
+laden();
+
+var verlauf = [];
+try{
+  var v = localStorage.getItem("mira_verlauf");
+  if(v){ verlauf = JSON.parse(v) || []; }
+}catch(e){ verlauf = []; }
+function verlaufSpeichern(){
+  try{ localStorage.setItem("mira_verlauf", JSON.stringify(verlauf.slice(-30))); }catch(e){}
+}
+
+var chat = document.getElementById("chat");
+var feld = document.getElementById("feld");
+var orb = document.getElementById("orb");
+var stimmeknopf = document.getElementById("stimmeknopf");
+
+function blase(text, klasse){
+  var d = document.createElement("div");
+  d.className = "blase " + klasse;
+  d.textContent = text;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+  return d;
+}
+
+function zeigeVerlauf(){
+  chat.innerHTML = "";
+  if(verlauf.length === 0){
+    blase("Hallo Julien, ich bin Mira.", "mira");
+  }
+  verlauf.forEach(function(m){
+    blase(m.text, m.rolle === "user" ? "du" : "mira");
+  });
+}
+
+function stimmeKnopfAktualisieren(){
+  stimmeknopf.textContent = EINST.ton ? "🔊" : "🔇";
+}
+
+// ---------- Sprachausgabe ----------
+var aktuellesAudio = null;
+
+function stopSprechen(){
+  try{ if(aktuellesAudio){ aktuellesAudio.pause(); aktuellesAudio = null; } }catch(e){}
+  try{ window.speechSynthesis.cancel(); }catch(e){}
+  orb.classList.remove("spricht");
+}
+
+function pcmZuWav(base64, rate){
+  var bin = atob(base64);
+  var len = bin.length;
+  var buf = new ArrayBuffer(44 + len);
+  var v = new DataView(buf);
+  function str(o, s){ for(var i=0;i<s.length;i++){ v.setUint8(o+i, s.charCodeAt(i)); } }
+  str(0,"RIFF"); v.setUint32(4, 36+len, true); str(8,"WAVE"); str(12,"fmt ");
+  v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+  v.setUint32(24,rate,true); v.setUint32(28,rate*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true);
+  str(36,"data"); v.setUint32(40,len,true);
+  for(var i=0;i<len;i++){ v.setUint8(44+i, bin.charCodeAt(i)); }
+  return new Blob([buf], {type:"audio/wav"});
+}
+
+function browserStimme(text){
+  try{
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = "de-DE";
+    u.onstart = function(){ orb.classList.add("spricht"); };
+    u.onend = function(){ orb.classList.remove("spricht"); };
+    u.onerror = function(){ orb.classList.remove("spricht"); };
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+async function sprich(text){
+  if(!EINST.ton || !text){ return; }
+  stopSprechen();
+  if(!EINST.gkey){ browserStimme(text); return; }
+  try{
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(EINST.tts) + ":generateContent?key=" + encodeURIComponent(EINST.gkey);
+    var body = {
+      contents: [{ parts: [{ text: text }] }],
+      generationConfig: {
+        responseModalities: ["AUDIO"],
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: EINST.stimme || "Kore" } } }
+      }
+    };
+    var r = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) });
+    if(!r.ok){ throw new Error("Stimme " + r.status); }
+    var j = await r.json();
+    var teil = j.candidates[0].content.parts[0].inlineData;
+    var blob = pcmZuWav(teil.data, 24000);
+    var a = new Audio(URL.createObjectURL(blob));
+    aktuellesAudio = a;
+    a.onplay = function(){ orb.classList.add("spricht"); };
+    a.onended = function(){ orb.classList.remove("spricht"); };
+    a.onerror = function(){ orb.classList.remove("spricht"); };
+    await a.play();
+  }catch(e){
+    browserStimme(text);
+  }
+}
+
+// ---------- Gehirn ----------
+function systemText(){
+  var jetzt = new Date().toLocaleString("de-DE", { dateStyle:"full", timeStyle:"short" });
+  var t = EINST.prompt || STANDARD_PROMPT;
+  if(EINST.ged){ t += "\n\nDas weißt du über Julien:\n" + EINST.ged; }
+  t += "\n\nAktuelles Datum und Uhrzeit: " + jetzt + ".";
+  return t;
+}
+
+function warte(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
+
+async function frageGemini(){
+  var url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(EINST.modell) + ":generateContent?key=" + encodeURIComponent(EINST.gkey);
+  var body = {
+    systemInstruction: { parts: [{ text: systemText() }] },
+    contents: verlauf.slice(-20).map(function(m){
+      return { role: m.rolle === "user" ? "user" : "model", parts: [{ text: m.text }] };
+    }),
+    generationConfig: { temperature: Number(EINST.temp) }
+  };
+  var letzter = "";
+  for(var i=0;i<5;i++){
+    var r = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) });
+    if(r.ok){
+      var j = await r.json();
+      try{ return j.candidates[0].content.parts.map(function(p){ return p.text || ""; }).join("").trim(); }
+      catch(e){ return "Dazu habe ich gerade keine Antwort."; }
+    }
+    letzter = "Fehler " + r.status;
+    if(r.status === 503 || r.status === 429 || r.status === 500){ await warte(1500 * (i+1)); continue; }
+    break;
+  }
+  throw new Error(letzter);
+}
+
+async function frageOpenRouter(){
+  var msgs = [{ role:"system", content: systemText() }].concat(
+    verlauf.slice(-20).map(function(m){ return { role: m.rolle === "user" ? "user" : "assistant", content: m.text }; })
+  );
+  var r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "Authorization":"Bearer " + EINST.orkey },
+    body: JSON.stringify({ model: EINST.modell, messages: msgs, temperature: Number(EINST.temp) })
+  });
+  if(!r.ok){ throw new Error("Fehler " + r.status); }
+  var j = await r.json();
+  return (j.choices[0].message.content || "").trim();
+}
+
+var beschaeftigt = false;
+
+async function senden(){
+  var text = feld.value.trim();
+  if(!text || beschaeftigt){ return; }
+  feld.value = "";
+  stopSprechen();
+  blase(text, "du");
+  verlauf.push({ rolle:"user", text:text });
+
+  var istOR = EINST.anbieter === "openrouter";
+  if((istOR && !EINST.orkey) || (!istOR && !EINST.gkey)){
+    blase("Mir fehlt noch ein Schlüssel. Tippe oben rechts auf das Zahnrad und trage ihn ein.", "mira leise");
+    return;
+  }
+
+  beschaeftigt = true;
+  orb.classList.add("denkt");
+  var wartet = blase("denkt nach ...", "mira leise");
+  try{
+    var antwort = istOR ? await frageOpenRouter() : await frageGemini();
+    wartet.remove();
+    blase(antwort, "mira");
+    verlauf.push({ rolle:"model", text:antwort });
+    verlaufSpeichern();
+    sprich(antwort);
+  }catch(e){
+    wartet.textContent = "Das hat nicht geklappt (" + e.message + "). Versuch es gleich noch einmal.";
+    verlauf.pop();
+  }
+  orb.classList.remove("denkt");
+  beschaeftigt = false;
+}
+
+// ---------- Einstellungen ----------
+var einst = document.getElementById("einst");
+var anbieter = document.getElementById("anbieter");
+var modelle = document.getElementById("modelle");
+
+var VORSCHLAEGE = {
+  gemini: ["gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash", "gemini-2.5-flash-lite"],
+  openrouter: ["meta-llama/llama-3.3-70b-instruct:free", "mistralai/mistral-small-3.2-24b-instruct:free", "deepseek/deepseek-chat-v3.1:free"]
+};
+
+function vorschlaegeFuellen(){
+  modelle.innerHTML = "";
+  (VORSCHLAEGE[anbieter.value] || []).forEach(function(m){
+    var o = document.createElement("option");
+    o.value = m;
+    modelle.appendChild(o);
+  });
+}
+
+function einstellungenZeigen(){
+  anbieter.value = EINST.anbieter;
+  document.getElementById("keyfeld").value = EINST.gkey;
+  document.getElementById("orfeld").value = EINST.orkey;
+  document.getElementById("modellfeld").value = EINST.modell;
+  document.getElementById("ttsfeld").value = EINST.tts;
+  document.getElementById("stimmefeld").value = EINST.stimme;
+  document.getElementById("tempfeld").value = EINST.temp;
+  document.getElementById("promptfeld").value = EINST.prompt;
+  document.getElementById("gedfeld").value = EINST.ged;
+  vorschlaegeFuellen();
+  einst.style.display = "block";
+}
+
+function einstellungenUebernehmen(){
+  EINST.anbieter = anbieter.value;
+  EINST.gkey = document.getElementById("keyfeld").value.trim();
+  EINST.orkey = document.getElementById("orfeld").value.trim();
+  EINST.modell = document.getElementById("modellfeld").value.trim() || VORSCHLAEGE[EINST.anbieter][0];
+  EINST.tts = document.getElementById("ttsfeld").value.trim() || "gemini-3.8-flash-tts";
+  EINST.stimme = document.getElementById("stimmefeld").value.trim() || "Kore";
+  var t = parseFloat(document.getElementById("tempfeld").value);
+  EINST.temp = isNaN(t) ? 0.9 : Math.min(2, Math.max(0, t));
+  EINST.prompt = document.getElementById("promptfeld").value.trim() || STANDARD_PROMPT;
+  EINST.ged = document.getElementById("gedfeld").value.trim();
+  speichern();
+}
+
+anbieter.addEventListener("change", function(){
+  vorschlaegeFuellen();
+  document.getElementById("modellfeld").value = VORSCHLAEGE[anbieter.value][0];
+});
+
+document.getElementById("einstknopf").addEventListener("click", einstellungenZeigen);
+document.getElementById("schliessen").addEventListener("click", function(){ einst.style.display = "none"; });
+document.getElementById("speichern").addEventListener("click", function(){
+  einstellungenUebernehmen();
+  einst.style.display = "none";
+  blase("Einstellungen gespeichert.", "mira leise");
+});
+document.getElementById("verlaufweg").addEventListener("click", function(){
+  verlauf = [];
+  verlaufSpeichern();
+  zeigeVerlauf();
+  einst.style.display = "none";
+});
+document.getElementById("teststimme").addEventListener("click", function(){
+  einstellungenUebernehmen();
+  var wasTon = EINST.ton;
+  EINST.ton = true;
+  sprich("Hallo Julien, ich bin Mira. Kannst du mich hören?");
+  EINST.ton = wasTon;
+});
+
+stimmeknopf.addEventListener("click", function(){
+  EINST.ton = !EINST.ton;
+  if(!EINST.ton){ stopSprechen(); }
+  speichern();
+  stimmeKnopfAktualisieren();
+});
+
+document.getElementById("senden").addEventListener("click", senden);
+feld.addEventListener("keydown", function(e){ if(e.key === "Enter"){ senden(); } });
+
+stimmeKnopfAktualisieren();
+zeigeVerlauf();
+
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(function(){});
+}
+})();
+</script>
+</body>
+</html>
