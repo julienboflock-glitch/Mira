@@ -1,431 +1,353 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#4b1d8f">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07030f">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png">
 <title>Mira</title>
 <style>
-*{box-sizing:border-box}
-html,body{margin:0;height:100%}
-body{display:flex;flex-direction:column;color:#efe4ff;font-family:"Segoe UI",Roboto,sans-serif;
-background:
-radial-gradient(circle at 50% -10%,rgba(160,70,255,.55),transparent 55%),
-repeating-linear-gradient(0deg,rgba(170,100,255,.07) 0 1px,transparent 1px 44px),
-repeating-linear-gradient(90deg,rgba(170,100,255,.07) 0 1px,transparent 1px 44px),
-#0a0418}
-header{position:relative;text-align:center;padding:18px 0 8px}
-.orb{position:relative;width:76px;height:76px;margin:0 auto;border-radius:50%;
-background:radial-gradient(circle at 35% 30%,#fff 0,#e6b8ff 18%,#9b3dff 55%,#2d0a5e);
-box-shadow:0 0 30px #a855ff,0 0 80px rgba(168,85,255,.6);animation:puls 3s ease-in-out infinite}
-.orb::before,.orb::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
-.orb::before{inset:-12px;border:1px solid rgba(200,140,255,.55);border-top-color:transparent;border-bottom-color:transparent;animation:dreh 6s linear infinite}
-.orb::after{inset:-22px;border:1px dashed rgba(170,100,255,.35);animation:dreh 14s linear infinite reverse}
-.orb.denkt{animation-duration:.7s}
-.orb.denkt::before{animation-duration:1.5s}
-.orb.spricht{animation-duration:1s;box-shadow:0 0 40px #d28bff,0 0 110px rgba(210,139,255,.8)}
-@keyframes puls{50%{transform:scale(1.07)}}
-@keyframes dreh{to{transform:rotate(360deg)}}
-h1{margin:22px 0 0;font-size:22px;font-weight:300;letter-spacing:12px;padding-left:12px;
-background:linear-gradient(90deg,#c9a0ff,#fff,#c9a0ff);-webkit-background-clip:text;background-clip:text;color:transparent;
-filter:drop-shadow(0 0 8px rgba(190,120,255,.8))}
-.knoepfe{position:absolute;top:14px;right:14px;display:flex;gap:8px}
-.knoepfe button{width:42px;height:42px;padding:0;font-size:19px;border-radius:12px;
-background:rgba(60,20,110,.45);border:1px solid rgba(190,120,255,.5);
-box-shadow:0 0 12px rgba(168,85,255,.35);backdrop-filter:blur(6px)}
-#chat{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
-.blase{max-width:78%;padding:11px 15px;line-height:1.45;white-space:pre-wrap;backdrop-filter:blur(8px)}
-.du{align-self:flex-end;border-radius:18px 18px 4px 18px;
-background:linear-gradient(135deg,#8b3dff,#c13dff);box-shadow:0 0 18px rgba(168,85,255,.5)}
-.mira{align-self:flex-start;border-radius:18px 18px 18px 4px;
-background:rgba(45,16,90,.55);border:1px solid rgba(190,120,255,.55);box-shadow:0 0 14px rgba(168,85,255,.3)}
-.leise{opacity:.6;font-style:italic}
-footer{display:flex;gap:10px;padding:12px 16px 16px}
-#feld{flex:1;min-width:0;padding:13px 18px;border-radius:26px;border:1px solid rgba(190,120,255,.5);
-background:rgba(30,10,64,.7);color:#f1e6ff;font-size:16px;outline:none;transition:.2s}
-#feld:focus{border-color:#d28bff;box-shadow:0 0 18px rgba(190,120,255,.6)}
-button{padding:0 24px;border-radius:26px;border:none;color:#fff;font-size:16px;cursor:pointer;
-background:linear-gradient(135deg,#8b3dff,#d03dff);box-shadow:0 0 16px rgba(168,85,255,.6)}
-#einst{display:none;position:fixed;inset:0;background:rgba(8,2,20,.96);padding:20px;overflow-y:auto;z-index:10}
-#einst .box{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
-#einst h2{margin:0 0 4px;font-weight:300;letter-spacing:6px;text-shadow:0 0 12px #a855ff}
-#einst label{font-size:13px;color:#c9a7f0;letter-spacing:1px}
-#einst input,#einst textarea,#einst select{width:100%;padding:12px;border-radius:12px;border:1px solid rgba(190,120,255,.5);background:rgba(30,10,64,.7);color:#f1e6ff;font-size:16px;font-family:inherit}
-#einst textarea{min-height:100px}
-#einst textarea#promptfeld{min-height:180px}
-#einst .zeile{display:flex;gap:10px}
-#einst .zeile button{height:44px;flex:1}
-#einst .zweit{background:rgba(60,20,110,.5);border:1px solid rgba(190,120,255,.5);box-shadow:none}
-small{color:#c9a7f0}
-small a{color:#d28bff}
+:root{
+  --accrgb:168,85,247;
+  --acc:rgb(var(--accrgb));
+  --bg:#07030f;
+  --txt:#f1e8ff;
+  --mut:#a99bc4;
+  --line:rgba(var(--accrgb),.35);
+  --glass:rgba(24,10,46,.62);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{
+  background:
+    radial-gradient(900px 500px at 50% -10%,rgba(var(--accrgb),.28),transparent 60%),
+    radial-gradient(600px 400px at 100% 100%,rgba(var(--accrgb),.12),transparent 60%),
+    var(--bg);
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.35;
+  background-image:linear-gradient(rgba(var(--accrgb),.07) 1px,transparent 1px),linear-gradient(90deg,rgba(var(--accrgb),.07) 1px,transparent 1px);
+  background-size:36px 36px;
+  -webkit-mask-image:radial-gradient(circle at 50% 20%,#000,transparent 75%);
+  mask-image:radial-gradient(circle at 50% 20%,#000,transparent 75%);
+}
+#app{position:relative;display:flex;flex-direction:column;height:100dvh;max-width:860px;margin:0 auto;padding:max(10px,env(safe-area-inset-top)) 14px max(12px,env(safe-area-inset-bottom))}
+header{display:flex;flex-direction:column;align-items:center;position:relative;padding:6px 0 4px}
+.tools{position:absolute;top:6px;right:0;display:flex;gap:8px}
+.ibtn{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--glass);color:var(--txt);font-size:20px;cursor:pointer;display:grid;place-items:center;backdrop-filter:blur(8px)}
+.ibtn:active{transform:scale(.95)}
+.ibtn.on{box-shadow:0 0 18px rgba(var(--accrgb),.7);border-color:var(--acc)}
+.orbwrap{position:relative;width:104px;height:104px;display:grid;place-items:center}
+.orb{width:68px;height:68px;border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,#fff 0,rgba(var(--accrgb),1) 28%,rgba(var(--accrgb),.55) 62%,rgba(20,5,40,.9) 100%);
+  box-shadow:0 0 28px rgba(var(--accrgb),.8),0 0 70px rgba(var(--accrgb),.35);
+  animation:breathe 4s ease-in-out infinite}
+.ring{position:absolute;inset:6px;border-radius:50%;border:1px solid var(--line);border-top-color:var(--acc);animation:spin 6s linear infinite}
+.ring.r2{inset:-2px;border-style:dashed;opacity:.5;animation-duration:14s;animation-direction:reverse}
+body.thinking .ring{animation-duration:1.1s;border-top-color:#fff}
+body.thinking .orb{animation:breathe 1s ease-in-out infinite}
+body.speaking .orb{animation:talk .45s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes talk{0%,100%{transform:scale(1)}50%{transform:scale(1.16)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+h1{margin:2px 0 0;font-weight:300;letter-spacing:.55em;font-size:22px;padding-left:.55em;text-shadow:0 0 14px rgba(var(--accrgb),.9)}
+#status{font-size:12px;color:var(--mut);margin-top:4px;min-height:16px;text-align:center}
+#log{flex:1;overflow-y:auto;padding:10px 2px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.msg{max-width:84%;padding:11px 15px;border-radius:18px;line-height:1.45;font-size:16px;white-space:pre-wrap;word-wrap:break-word;animation:pop .25s ease}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.msg.mira{align-self:flex-start;background:var(--glass);border:1px solid var(--line);border-bottom-left-radius:5px;backdrop-filter:blur(8px)}
+.msg.user{align-self:flex-end;background:linear-gradient(135deg,rgba(var(--accrgb),1),rgba(var(--accrgb),.65));color:#fff;border-bottom-right-radius:5px;box-shadow:0 4px 20px rgba(var(--accrgb),.3)}
+.msg.err{border-color:#ff6b8a;color:#ffd3dc}
+.msg small{display:block;margin-top:5px;font-size:11px;color:var(--mut)}
+form#bar{display:flex;gap:8px;padding-top:8px}
+#inp{flex:1;min-width:0;height:48px;border-radius:24px;border:1px solid var(--line);background:var(--glass);color:var(--txt);padding:0 18px;font-size:16px;outline:none;backdrop-filter:blur(8px)}
+#inp:focus{border-color:var(--acc);box-shadow:0 0 14px rgba(var(--accrgb),.4)}
+#mic{width:48px;height:48px;border-radius:50%}
+#sendb{height:48px;padding:0 22px;border-radius:24px;border:0;background:linear-gradient(135deg,rgba(var(--accrgb),1),rgba(var(--accrgb),.6));color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 0 18px rgba(var(--accrgb),.45)}
+#sendb:disabled{opacity:.5}
+/* Einstellungen */
+#panel{position:fixed;inset:0;background:rgba(3,1,8,.78);display:none;z-index:10;backdrop-filter:blur(4px)}
+#panel.open{display:block}
+#sheet{position:absolute;top:0;right:0;bottom:0;width:min(560px,100%);background:#0d0620;border-left:1px solid var(--line);overflow-y:auto;padding:18px 18px 40px}
+#sheet h2{margin:0 0 4px;font-weight:300;letter-spacing:.3em;font-size:20px}
+#sheet h3{margin:26px 0 8px;font-size:12px;letter-spacing:.25em;text-transform:uppercase;color:var(--acc)}
+#sheet p.note{margin:0 0 10px;font-size:13px;color:var(--mut);line-height:1.45}
+.prov{border:1px solid var(--line);background:var(--glass);border-radius:16px;padding:12px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+.prov.main{border-color:var(--acc);box-shadow:0 0 16px rgba(var(--accrgb),.25)}
+.ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ph a{margin-left:auto;font-size:12px;color:var(--acc)}
+.tag{font-size:11px;color:var(--mut)}
+.radio{display:flex;align-items:center;gap:8px;cursor:pointer}
+input[type=text],input[type=password],select,textarea{width:100%;background:rgba(0,0,0,.35);color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-size:15px;font-family:inherit;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+textarea{min-height:90px;resize:vertical}
+input[type=range]{width:100%;accent-color:var(--acc)}
+label.row{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+.btn{border:1px solid var(--line);background:rgba(var(--accrgb),.15);color:var(--txt);border-radius:12px;padding:10px 16px;font-size:14px;cursor:pointer}
+.btn.pri{background:linear-gradient(135deg,rgba(var(--accrgb),1),rgba(var(--accrgb),.6));border:0;font-weight:600}
+.res{font-size:12px;color:var(--mut)}
+.res.ok{color:#6ee7a8}.res.bad{color:#ff8da6}
+.swatches{display:flex;gap:10px}
+.sw{width:38px;height:38px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.sw.sel{border-color:#fff}
+.actions{position:sticky;bottom:-40px;display:flex;gap:10px;padding:14px 0 6px;background:linear-gradient(transparent,#0d0620 35%);margin-top:20px}
+.actions .btn{flex:1}
 </style>
 </head>
 <body>
-<header>
-<div class="knoepfe">
-<button id="stimmeknopf" title="Stimme an/aus">🔊</button>
-<button id="einstknopf" title="Einstellungen">⚙</button>
+<div id="app">
+  <header>
+    <div class="tools">
+      <button class="ibtn" id="spk" title="Sprachausgabe an/aus" type="button">🔊</button>
+      <button class="ibtn" id="gear" title="Einstellungen" type="button">⚙️</button>
+    </div>
+    <div class="orbwrap"><div class="ring r2"></div><div class="ring"></div><div class="orb"></div></div>
+    <h1>MIRA</h1>
+    <div id="status"></div>
+  </header>
+  <div id="log" aria-live="polite"></div>
+  <form id="bar" autocomplete="off">
+    <button class="ibtn" id="mic" type="button" title="Sprechen">🎤</button>
+    <input id="inp" type="text" placeholder="Schreib mit Mira ..." enterkeyhint="send">
+    <button id="sendb" type="submit">Senden</button>
+  </form>
 </div>
-<div class="orb" id="orb"></div>
-<h1>MIRA</h1>
-</header>
-<div id="chat"></div>
-<footer>
-<input id="feld" placeholder="Schreib mit Mira ..." autocomplete="off">
-<button id="senden">Senden</button>
-</footer>
 
-<div id="einst">
-<div class="box">
-<h2>Einstellungen</h2>
+<div id="panel">
+  <div id="sheet">
+    <h2>EINSTELLUNGEN</h2>
+    <p class="note">Alles bleibt nur auf diesem Gerät gespeichert. Trag bei mehreren Anbietern einen kostenlosen Schlüssel ein: Wenn bei einem das Limit erreicht ist, springt Mira automatisch zum nächsten.</p>
 
-<label for="anbieter">Anbieter</label>
-<select id="anbieter">
-<option value="gemini">Google Gemini (kostenlos, aber brav)</option>
-<option value="openrouter">OpenRouter (offenere Modelle)</option>
-</select>
+    <h3>Anbieter</h3>
+    <p class="note">Der Punkt links markiert den Hauptanbieter. Alle anderen mit Schlüssel dienen als Reserve.</p>
+    <div id="provs"></div>
 
-<label for="keyfeld">Gemini-Schlüssel (bleibt nur auf diesem Gerät, auch für die Stimme)</label>
-<input id="keyfeld" type="password" autocomplete="off" placeholder="AIza...">
+    <h3>Stimme</h3>
+    <label class="row">Art der Stimme</label>
+    <select id="voiceMode">
+      <option value="browser">Gerätestimme – kostenlos, ohne Limit, immer gleich (empfohlen)</option>
+      <option value="gemini">Gemini-Stimme – klingt natürlicher, hat ein Limit (wechselt dann automatisch zur Gerätestimme)</option>
+    </select>
+    <label class="row">Gerätestimme</label>
+    <select id="voiceName"></select>
+    <label class="row">Geschwindigkeit: <span id="rateV"></span></label>
+    <input type="range" id="rate" min="0.7" max="1.4" step="0.05">
+    <label class="row">Tonhöhe: <span id="pitchV"></span></label>
+    <input type="range" id="pitch" min="0.7" max="1.5" step="0.05">
+    <label class="row">Gemini-Stimme (nur für Gemini-Stimme)</label>
+    <input type="text" id="gemVoice" placeholder="Kore">
+    <label class="row">Gemini-Stimmen-Modell</label>
+    <input type="text" id="ttsModel" placeholder="gemini-3.8-flash-tts">
+    <div class="ph" style="margin-top:10px"><button type="button" class="btn" id="vtest">Stimme testen</button><span class="res" id="vres"></span></div>
 
-<label for="orfeld">OpenRouter-Schlüssel (nur nötig, wenn Anbieter OpenRouter)</label>
-<input id="orfeld" type="password" autocomplete="off" placeholder="sk-or-v1-...">
+    <h3>Persönlichkeit</h3>
+    <textarea id="persona"></textarea>
+    <h3>Gedächtnis</h3>
+    <p class="note">Eine Sache pro Zeile. Im Chat geht auch: „Merke dir, dass ...“</p>
+    <textarea id="memory"></textarea>
 
-<label for="modellfeld">Modell</label>
-<input id="modellfeld" list="modelle" autocomplete="off" placeholder="Modellname">
-<datalist id="modelle"></datalist>
-<small>Gemini: <code>gemini-flash-lite-latest</code> ist schnell, <code>gemini-flash-latest</code> lebendiger, aber knapper im Gratis-Kontingent. Offene Modelle: <a href="https://openrouter.ai/models?max_price=0" target="_blank">kostenlose Liste</a>.</small>
+    <h3>Design</h3>
+    <div class="swatches" id="sws"></div>
 
-<label for="ttsfeld">Stimmen-Modell (Gemini)</label>
-<input id="ttsfeld" autocomplete="off" placeholder="gemini-3.8-flash-tts">
-
-<label for="stimmefeld">Stimme</label>
-<input id="stimmefeld" autocomplete="off" placeholder="Kore">
-
-<label for="tempfeld">Kreativität (0 = sachlich, 1 = locker, 2 = wild)</label>
-<input id="tempfeld" type="number" min="0" max="2" step="0.1">
-
-<label for="promptfeld">Miras Persönlichkeit (System-Anweisung)</label>
-<textarea id="promptfeld"></textarea>
-
-<label for="gedfeld">Was Mira über dich weiß</label>
-<textarea id="gedfeld" placeholder="z. B. Name: Julien, wohnt in Hürth ..."></textarea>
-
-<div class="zeile">
-<button id="speichern">Speichern</button>
-<button id="schliessen" class="zweit">Schließen</button>
-</div>
-<div class="zeile">
-<button id="verlaufweg" class="zweit">Gespräch löschen</button>
-<button id="teststimme" class="zweit">Stimme testen</button>
-</div>
-</div>
+    <div class="actions">
+      <button type="button" class="btn" id="cancel">Schließen</button>
+      <button type="button" class="btn pri" id="save">Speichern</button>
+    </div>
+  </div>
 </div>
 
 <script>
-(function(){
-var STANDARD_PROMPT = "Du bist Mira, die persönliche Assistentin von Julien. Du sprichst Deutsch, bist warm, aufmerksam und ein bisschen witzig, wie Jarvis aus Iron Man, nur freundlicher. Antworte kurz und natürlich, meist in ein bis drei Sätzen, weil deine Antworten laut gesprochen werden. Keine Aufzählungen, kein Markdown, keine Sternchen.";
+"use strict";
+const $=id=>document.getElementById(id);
 
-var EINST = {
-  anbieter: "gemini",
-  gkey: "",
-  orkey: "",
-  modell: "gemini-flash-lite-latest",
-  tts: "gemini-3.8-flash-tts",
-  stimme: "Kore",
-  temp: 0.9,
-  prompt: STANDARD_PROMPT,
-  ged: "Name: Julien. Wohnort: Hürth bei Köln.",
-  ton: true
+/* ---------- Anbieter ---------- */
+const PROVIDERS={
+  gemini:{name:"Google Gemini",type:"gemini",model:"gemini-flash-lite-latest",link:"https://aistudio.google.com/apikey",tag:"kostenlos, Limit schwankt"},
+  groq:{name:"Groq",type:"openai",base:"https://api.groq.com/openai/v1",model:"llama-3.3-70b-versatile",link:"https://console.groq.com/keys",tag:"kostenlos, sehr schnell"},
+  cerebras:{name:"Cerebras",type:"openai",base:"https://api.cerebras.ai/v1",model:"llama-3.3-70b",link:"https://cloud.cerebras.ai",tag:"kostenlos, sehr schnell"},
+  openrouter:{name:"OpenRouter",type:"openai",base:"https://openrouter.ai/api/v1",model:"meta-llama/llama-3.3-70b-instruct:free",link:"https://openrouter.ai/keys",tag:"viele :free-Modelle"},
+  mistral:{name:"Mistral",type:"openai",base:"https://api.mistral.ai/v1",model:"mistral-small-latest",link:"https://console.mistral.ai/api-keys",tag:"kostenloser Tarif"},
+  custom:{name:"Eigener Anbieter",type:"openai",base:"",model:"",link:"https://github.com/open-free-llm-api/awesome-freellm-apis",tag:"jeder OpenAI-kompatible Dienst"}
 };
+const ACCENTS={violett:"168,85,247",cyan:"34,211,238",magenta:"236,72,153",gruen:"52,211,153",orange:"251,146,60"};
 
-function laden(){
-  try{
-    var s = localStorage.getItem("mira_einst");
-    if(s){ var o = JSON.parse(s); for(var k in o){ EINST[k] = o[k]; } }
-  }catch(e){}
+const DEF={
+  main:"gemini",keys:{},models:{},customBase:"",
+  persona:"Du bist Mira, die persönliche Assistentin von Julien. Du sprichst Deutsch, bist freundlich, ein bisschen witzig und souverän, wie Jarvis aus Iron Man. Antworte kurz, meist in 1 bis 3 Sätzen, ohne Aufzählungen und ohne Formatierung, weil deine Antworten laut vorgelesen werden.",
+  memory:"Name: Julien\nWohnort: Hürth bei Köln",
+  voiceMode:"browser",voiceName:"",rate:1,pitch:1,gemVoice:"Kore",ttsModel:"gemini-3.8-flash-tts",
+  accent:"violett",speak:true
+};
+let S=load("mira_settings",{});
+S=Object.assign({},DEF,S);
+S.keys=S.keys||{};S.models=S.models||{};
+let hist=load("mira_hist",[]);
+if(!Array.isArray(hist))hist=[];
+const cool={};          // Anbieter -> Zeitpunkt, bis zu dem er pausiert
+let ttsCool=0;          // Gemini-Stimme pausiert bis ...
+let busy=false,curAudio=null;
+
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+const modelOf=id=>(S.models[id]||"").trim()||PROVIDERS[id].model;
+
+/* ---------- Oberfläche ---------- */
+function applyAccent(){
+  document.documentElement.style.setProperty("--accrgb",ACCENTS[S.accent]||ACCENTS.violett);
+  const m=document.querySelector('meta[name=theme-color]');if(m)m.content="#07030f";
 }
-function speichern(){
-  try{ localStorage.setItem("mira_einst", JSON.stringify(EINST)); }catch(e){}
+function setState(s){document.body.classList.remove("thinking","speaking");if(s)document.body.classList.add(s)}
+function updateStatus(extra){
+  const p=PROVIDERS[S.main]?PROVIDERS[S.main].name:"-";
+  const v=S.voiceMode==="gemini"&&Date.now()>=ttsCool?"Gemini-Stimme":"Gerätestimme";
+  $("status").textContent=extra||("Anbieter: "+p+" · "+v+(S.speak?"":" · stumm"));
+  $("spk").textContent=S.speak?"🔊":"🔇";
 }
-laden();
-
-var verlauf = [];
-try{
-  var v = localStorage.getItem("mira_verlauf");
-  if(v){ verlauf = JSON.parse(v) || []; }
-}catch(e){ verlauf = []; }
-function verlaufSpeichern(){
-  try{ localStorage.setItem("mira_verlauf", JSON.stringify(verlauf.slice(-30))); }catch(e){}
-}
-
-var chat = document.getElementById("chat");
-var feld = document.getElementById("feld");
-var orb = document.getElementById("orb");
-var stimmeknopf = document.getElementById("stimmeknopf");
-
-function blase(text, klasse){
-  var d = document.createElement("div");
-  d.className = "blase " + klasse;
-  d.textContent = text;
-  chat.appendChild(d);
-  chat.scrollTop = chat.scrollHeight;
+function addMsg(who,text,cls,sub){
+  const d=document.createElement("div");
+  d.className="msg "+who+(cls?" "+cls:"");
+  d.textContent=text;
+  if(sub){const s=document.createElement("small");s.textContent=sub;d.appendChild(s)}
+  $("log").appendChild(d);
+  $("log").scrollTop=$("log").scrollHeight;
   return d;
 }
+function renderHist(){
+  $("log").innerHTML="";
+  if(!hist.length){addMsg("mira","Hallo Julien, ich bin Mira. Wie kann ich dir helfen?")}
+  hist.forEach(m=>addMsg(m.role==="user"?"user":"mira",m.content));
+}
+function saveHist(){hist=hist.slice(-40);store("mira_hist",hist)}
 
-function zeigeVerlauf(){
-  chat.innerHTML = "";
-  if(verlauf.length === 0){
-    blase("Hallo Julien, ich bin Mira.", "mira");
+/* ---------- Kontext: Zeit, Wetter, Gedächtnis ---------- */
+function buildSystem(extra){
+  const now=new Date().toLocaleString("de-DE",{dateStyle:"full",timeStyle:"short"});
+  let s=S.persona+"\n\nAktuelles Datum und Uhrzeit: "+now+".";
+  if(S.memory.trim())s+="\n\nDas weißt du über Julien:\n"+S.memory.trim();
+  if(extra)s+="\n\n"+extra;
+  return s;
+}
+const WCODE={0:"klar",1:"überwiegend klar",2:"teils bewölkt",3:"bedeckt",45:"Nebel",48:"Nebel",51:"leichter Nieselregen",53:"Nieselregen",55:"starker Nieselregen",61:"leichter Regen",63:"Regen",65:"starker Regen",71:"leichter Schnee",73:"Schnee",75:"starker Schnee",80:"Schauer",81:"Schauer",82:"heftige Schauer",95:"Gewitter",96:"Gewitter mit Hagel",99:"Gewitter mit Hagel"};
+async function getWeather(){
+  const r=await fetch("https://api.open-meteo.com/v1/forecast?latitude=50.87&longitude=6.88&current=temperature_2m,weather_code,wind_speed_10m&timezone=Europe%2FBerlin");
+  if(!r.ok)throw new Error("Wetter");
+  const c=(await r.json()).current;
+  return "Aktuelles Wetter in Hürth: "+Math.round(c.temperature_2m)+" Grad, "+(WCODE[c.weather_code]||"wechselhaft")+", Wind "+Math.round(c.wind_speed_10m)+" km/h.";
+}
+function localCommand(t){
+  let m=t.match(/^merke(?:\s+dir)?[\s:,]+(?:dass\s+)?(.+)$/i);
+  if(m){S.memory=(S.memory.trim()?S.memory.trim()+"\n":"")+m[1].trim();store("mira_settings",S);return "Gemerkt."}
+  if(/^was weißt du(?: über mich)?\??$/i.test(t)){
+    const k=S.memory.trim();return k?"Das weiß ich bisher: "+k.split("\n").join(", ")+".":"Noch nichts."
   }
-  verlauf.forEach(function(m){
-    blase(m.text, m.rolle === "user" ? "du" : "mira");
+  return null;
+}
+
+/* ---------- KI-Aufrufe ---------- */
+class HttpErr extends Error{constructor(status,body){super("HTTP "+status);this.status=status;this.body=body}}
+async function callGemini(id,msgs,system,key,model){
+  const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent?key="+encodeURIComponent(key),{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      systemInstruction:{parts:[{text:system}]},
+      contents:msgs.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]})),
+      generationConfig:{maxOutputTokens:700,temperature:0.8}
+    })
   });
-}
-
-function stimmeKnopfAktualisieren(){
-  stimmeknopf.textContent = EINST.ton ? "🔊" : "🔇";
-}
-
-// ---------- Sprachausgabe ----------
-var aktuellesAudio = null;
-
-function stopSprechen(){
-  try{ if(aktuellesAudio){ aktuellesAudio.pause(); aktuellesAudio = null; } }catch(e){}
-  try{ window.speechSynthesis.cancel(); }catch(e){}
-  orb.classList.remove("spricht");
-}
-
-function pcmZuWav(base64, rate){
-  var bin = atob(base64);
-  var len = bin.length;
-  var buf = new ArrayBuffer(44 + len);
-  var v = new DataView(buf);
-  function str(o, s){ for(var i=0;i<s.length;i++){ v.setUint8(o+i, s.charCodeAt(i)); } }
-  str(0,"RIFF"); v.setUint32(4, 36+len, true); str(8,"WAVE"); str(12,"fmt ");
-  v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
-  v.setUint32(24,rate,true); v.setUint32(28,rate*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true);
-  str(36,"data"); v.setUint32(40,len,true);
-  for(var i=0;i<len;i++){ v.setUint8(44+i, bin.charCodeAt(i)); }
-  return new Blob([buf], {type:"audio/wav"});
-}
-
-function browserStimme(text){
-  try{
-    var u = new SpeechSynthesisUtterance(text);
-    u.lang = "de-DE";
-    u.onstart = function(){ orb.classList.add("spricht"); };
-    u.onend = function(){ orb.classList.remove("spricht"); };
-    u.onerror = function(){ orb.classList.remove("spricht"); };
-    window.speechSynthesis.speak(u);
-  }catch(e){}
-}
-
-async function sprich(text){
-  if(!EINST.ton || !text){ return; }
-  stopSprechen();
-  if(!EINST.gkey){ browserStimme(text); return; }
-  try{
-    var url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(EINST.tts) + ":generateContent?key=" + encodeURIComponent(EINST.gkey);
-    var body = {
-      contents: [{ parts: [{ text: text }] }],
-      generationConfig: {
-        responseModalities: ["AUDIO"],
-        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: EINST.stimme || "Kore" } } }
-      }
-    };
-    var r = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) });
-    if(!r.ok){ throw new Error("Stimme " + r.status); }
-    var j = await r.json();
-    var teil = j.candidates[0].content.parts[0].inlineData;
-    var blob = pcmZuWav(teil.data, 24000);
-    var a = new Audio(URL.createObjectURL(blob));
-    aktuellesAudio = a;
-    a.onplay = function(){ orb.classList.add("spricht"); };
-    a.onended = function(){ orb.classList.remove("spricht"); };
-    a.onerror = function(){ orb.classList.remove("spricht"); };
-    await a.play();
-  }catch(e){
-    blase("Stimme: " + e.message, "mira leise");
-    browserStimme(text);
-  }
-}
-
-// ---------- Gehirn ----------
-function systemText(){
-  var jetzt = new Date().toLocaleString("de-DE", { dateStyle:"full", timeStyle:"short" });
-  var t = EINST.prompt || STANDARD_PROMPT;
-  if(EINST.ged){ t += "\n\nDas weißt du über Julien:\n" + EINST.ged; }
-  t += "\n\nAktuelles Datum und Uhrzeit: " + jetzt + ".";
+  if(!r.ok)throw new HttpErr(r.status,await r.text().catch(()=>""));
+  const j=await r.json();
+  const t=((j.candidates||[])[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
+  if(!t)throw new HttpErr(502,"leere Antwort");
   return t;
 }
-
-function warte(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
-
-async function frageGemini(){
-  var url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(EINST.modell) + ":generateContent?key=" + encodeURIComponent(EINST.gkey);
-  var body = {
-    systemInstruction: { parts: [{ text: systemText() }] },
-    contents: verlauf.slice(-20).map(function(m){
-      return { role: m.rolle === "user" ? "user" : "model", parts: [{ text: m.text }] };
-    }),
-    generationConfig: { temperature: Number(EINST.temp) }
-  };
-  var letzter = "";
-  for(var i=0;i<5;i++){
-    var r = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) });
-    if(r.ok){
-      var j = await r.json();
-      try{ return j.candidates[0].content.parts.map(function(p){ return p.text || ""; }).join("").trim(); }
-      catch(e){ return "Dazu habe ich gerade keine Antwort."; }
-    }
-    letzter = "Fehler " + r.status;
-    if(r.status === 503 || r.status === 429 || r.status === 500){ await warte(1500 * (i+1)); continue; }
-    break;
-  }
-  throw new Error(letzter);
-}
-
-async function frageOpenRouter(){
-  var msgs = [{ role:"system", content: systemText() }].concat(
-    verlauf.slice(-20).map(function(m){ return { role: m.rolle === "user" ? "user" : "assistant", content: m.text }; })
-  );
-  var r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+async function callOpenAI(id,msgs,system,key,model){
+  const base=(id==="custom"?S.customBase:PROVIDERS[id].base||"").trim().replace(/\/$/,"");
+  if(!base)throw new HttpErr(400,"Basis-URL fehlt");
+  const r=await fetch(base+"/chat/completions",{
     method:"POST",
-    headers:{ "Content-Type":"application/json", "Authorization":"Bearer " + EINST.orkey },
-    body: JSON.stringify({ model: EINST.modell, messages: msgs, temperature: Number(EINST.temp) })
+    headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+    body:JSON.stringify({model:model,messages:[{role:"system",content:system}].concat(msgs),max_tokens:500,temperature:0.8})
   });
-  if(!r.ok){ throw new Error("Fehler " + r.status); }
-  var j = await r.json();
-  return (j.choices[0].message.content || "").trim();
+  if(!r.ok)throw new HttpErr(r.status,await r.text().catch(()=>""));
+  const j=await r.json();
+  const t=(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content||"").trim();
+  if(!t)throw new HttpErr(502,"leere Antwort");
+  return t;
+}
+function callProvider(id,msgs,system,keyOverride,modelOverride){
+  const key=(keyOverride||S.keys[id]||"").trim();
+  const model=(modelOverride||modelOf(id));
+  return PROVIDERS[id].type==="gemini"?callGemini(id,msgs,system,key,model):callOpenAI(id,msgs,system,key,model);
+}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+async function askAI(msgs,system){
+  const ids=[S.main].concat(Object.keys(PROVIDERS).filter(k=>k!==S.main)).filter(k=>PROVIDERS[k]&&(S.keys[k]||"").trim());
+  if(!ids.length)throw new Error("Noch kein API-Schlüssel eingetragen. Öffne die Einstellungen (Zahnrad) und trag einen kostenlosen Schlüssel ein, zum Beispiel von Groq oder Google Gemini.");
+  const ready=ids.filter(k=>!(cool[k]>Date.now()));
+  const order=ready.length?ready:ids;   // wenn alle pausieren, trotzdem alle probieren
+  const fails=[];
+  for(const id of order){
+    for(let tries=0;tries<2;tries++){
+      try{
+        const t=await callProvider(id,msgs,system);
+        return {text:t,via:id};
+      }catch(e){
+        const st=e.status||0;
+        if((st===503||st===500||st===0)&&tries===0){await sleep(900);continue}   // kurz nochmal versuchen
+        if(st===429)cool[id]=Date.now()+60000;
+        else if(st===401||st===403)cool[id]=Date.now()+600000;
+        else cool[id]=Date.now()+20000;
+        fails.push(PROVIDERS[id].name+" ("+(st===429?"Limit erreicht":st===401||st===403?"Schlüssel ungültig":st?("Fehler "+st):"keine Verbindung")+")");
+        break;
+      }
+    }
+  }
+  throw new Error("Gerade antwortet kein Anbieter: "+fails.join(", ")+". Trag in den Einstellungen einen weiteren kostenlosen Schlüssel ein oder versuch es in einer Minute nochmal.");
 }
 
-var beschaeftigt = false;
-
-async function senden(){
-  var text = feld.value.trim();
-  if(!text || beschaeftigt){ return; }
-  feld.value = "";
-  stopSprechen();
-  blase(text, "du");
-  verlauf.push({ rolle:"user", text:text });
-
-  var istOR = EINST.anbieter === "openrouter";
-  if((istOR && !EINST.orkey) || (!istOR && !EINST.gkey)){
-    blase("Mir fehlt noch ein Schlüssel. Tippe oben rechts auf das Zahnrad und trage ihn ein.", "mira leise");
-    return;
-  }
-
-  beschaeftigt = true;
-  orb.classList.add("denkt");
-  var wartet = blase("denkt nach ...", "mira leise");
-  try{
-    var antwort = istOR ? await frageOpenRouter() : await frageGemini();
-    wartet.remove();
-    blase(antwort, "mira");
-    verlauf.push({ rolle:"model", text:antwort });
-    verlaufSpeichern();
-    sprich(antwort);
-  }catch(e){
-    wartet.textContent = "Das hat nicht geklappt (" + e.message + "). Versuch es gleich noch einmal.";
-    verlauf.pop();
-  }
-  orb.classList.remove("denkt");
-  beschaeftigt = false;
+/* ---------- Stimme ---------- */
+function clean(t){return t.replace(/https?:\/\/\S+/g,"").replace(/[*_`#>~|]/g,"").replace(/\s+/g," ").trim()}
+function germanVoices(){
+  const all=("speechSynthesis" in window)?speechSynthesis.getVoices():[];
+  const de=all.filter(v=>/^de/i.test(v.lang));
+  return de.length?de:all;
 }
-
-// ---------- Einstellungen ----------
-var einst = document.getElementById("einst");
-var anbieter = document.getElementById("anbieter");
-var modelle = document.getElementById("modelle");
-
-var VORSCHLAEGE = {
-  gemini: ["gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash", "gemini-2.5-flash-lite"],
-  openrouter: ["meta-llama/llama-3.3-70b-instruct:free", "mistralai/mistral-small-3.2-24b-instruct:free", "deepseek/deepseek-chat-v3.1:free"]
-};
-
-function vorschlaegeFuellen(){
-  modelle.innerHTML = "";
-  (VORSCHLAEGE[anbieter.value] || []).forEach(function(m){
-    var o = document.createElement("option");
-    o.value = m;
-    modelle.appendChild(o);
+function pickVoice(){
+  const vs=germanVoices();
+  if(S.voiceName){const f=vs.find(v=>v.name===S.voiceName);if(f)return f}
+  return vs.find(v=>/google|natural|neural/i.test(v.name)&&/^de/i.test(v.lang))||vs.find(v=>/^de/i.test(v.lang))||vs[0]||null;
+}
+function stopSpeaking(){
+  try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}
+  if(curAudio){try{curAudio.pause()}catch(e){}curAudio=null}
+}
+function speakBrowser(text){
+  return new Promise(res=>{
+    if(!("speechSynthesis" in window))return res();
+    speechSynthesis.cancel();
+    const parts=text.match(/[^.!?…]+[.!?…]*\s*/g)||[text];
+    const v=pickVoice();
+    let left=parts.length;
+    parts.forEach(p=>{
+      const u=new SpeechSynthesisUtterance(p.trim());
+      if(v){u.voice=v;u.lang=v.lang}else u.lang="de-DE";
+      u.rate=Number(S.rate)||1;u.pitch=Number(S.pitch)||1;
+      const done=()=>{if(--left<=0)res()};
+      u.onend=done;u.onerror=done;
+      speechSynthesis.speak(u);
+    });
+    setTimeout(res,60000);
   });
 }
-
-function einstellungenZeigen(){
-  anbieter.value = EINST.anbieter;
-  document.getElementById("keyfeld").value = EINST.gkey;
-  document.getElementById("orfeld").value = EINST.orkey;
-  document.getElementById("modellfeld").value = EINST.modell;
-  document.getElementById("ttsfeld").value = EINST.tts;
-  document.getElementById("stimmefeld").value = EINST.stimme;
-  document.getElementById("tempfeld").value = EINST.temp;
-  document.getElementById("promptfeld").value = EINST.prompt;
-  document.getElementById("gedfeld").value = EINST.ged;
-  vorschlaegeFuellen();
-  einst.style.display = "block";
+function pcmToWav(b64,rate){
+  const bin=atob(b64),n=bin.length,buf=new ArrayBuffer(44+n),dv=new DataView(buf);
+  const w=(o,s)=>{for(let i=0;i<s.length;i++)dv.setUint8(o+i,s.charCodeAt(i))};
+  w(0,"RIFF");dv.setUint32(4,36+n,true);w(8,"WAVE");w(12,"fmt ");dv.setUint32(16,16,true);
+  dv.setUint16(20,1,true);dv.setUint16(22,1,true);dv.setUint32(24,rate,true);dv.setUint32(28,rate*2,true);
+  dv.setUint16(32,2,true);dv.setUint16(34,16,true);w(36,"data");dv.setUint32(40,n,true);
+  for(let i=0;i<n;i++)dv.setUint8(44+i,bin.charCodeAt(i));
+  return new Blob([buf],{type:"audio/wav"});
 }
-
-function einstellungenUebernehmen(){
-  EINST.anbieter = anbieter.value;
-  EINST.gkey = document.getElementById("keyfeld").value.trim();
-  EINST.orkey = document.getElementById("orfeld").value.trim();
-  EINST.modell = document.getElementById("modellfeld").value.trim() || VORSCHLAEGE[EINST.anbieter][0];
-  EINST.tts = document.getElementById("ttsfeld").value.trim() || "gemini-3.8-flash-tts";
-  EINST.stimme = document.getElementById("stimmefeld").value.trim() || "Kore";
-  var t = parseFloat(document.getElementById("tempfeld").value);
-  EINST.temp = isNaN(t) ? 0.9 : Math.min(2, Math.max(0, t));
-  EINST.prompt = document.getElementById("promptfeld").value.trim() || STANDARD_PROMPT;
-  EINST.ged = document.getElementById("gedfeld").value.trim();
-  speichern();
-}
-
-anbieter.addEventListener("change", function(){
-  vorschlaegeFuellen();
-  document.getElementById("modellfeld").value = VORSCHLAEGE[anbieter.value][0];
-});
-
-document.getElementById("einstknopf").addEventListener("click", einstellungenZeigen);
-document.getElementById("schliessen").addEventListener("click", function(){ einst.style.display = "none"; });
-document.getElementById("speichern").addEventListener("click", function(){
-  einstellungenUebernehmen();
-  einst.style.display = "none";
-  blase("Einstellungen gespeichert.", "mira leise");
-});
-document.getElementById("verlaufweg").addEventListener("click", function(){
-  verlauf = [];
-  verlaufSpeichern();
-  zeigeVerlauf();
-  einst.style.display = "none";
-});
-document.getElementById("teststimme").addEventListener("click", function(){
-  einstellungenUebernehmen();
-  var wasTon = EINST.ton;
-  EINST.ton = true;
-  sprich("Hallo Julien, ich bin Mira. Kannst du mich hören?");
-  EINST.ton = wasTon;
-});
-
-stimmeknopf.addEventListener("click", function(){
-  EINST.ton = !EINST.ton;
-  if(!EINST.ton){ stopSprechen(); }
-  speichern();
-  stimmeKnopfAktualisieren();
-});
-
-document.getElementById("senden").addEventListener("click", senden);
-feld.addEventListener("keydown", function(e){ if(e.key === "Enter"){ senden(); } });
-
-stimmeKnopfAktualisieren();
-zeigeVerlauf();
-
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js").catch(function(){});
-}
-})();
-</script>
-</body>
-</html>
+async function speakGemini(text){
+  const key=(S.key
