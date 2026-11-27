@@ -22,6 +22,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .u{align-self:flex-end;background:var(--acc);color:#fff;border-bottom-right-radius:4px;box-shadow:0 0 14px rgba(168,85,247,.5)}
 .a{align-self:flex-start;background:var(--panel);border:1px solid var(--line);border-bottom-left-radius:4px}
 .e{align-self:flex-start;background:rgba(58,15,26,.9);border:1px solid #7a1f33;color:#ffd5dc}
+.n{align-self:flex-start;background:none;border:0;color:var(--dim);font-size:12px;padding:0 6px}
 form{display:flex;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
 #inp{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:12px 16px;color:var(--txt);font-size:16px;outline:none}
 #inp:focus{border-color:var(--acc);box-shadow:0 0 12px rgba(168,85,247,.6)}
@@ -67,6 +68,7 @@ label{display:block;margin:12px 0 4px;color:var(--dim);font-size:13px}
     <label>Stimme</label>
     <input id="s_voice" type="text">
     <div class="chk"><input id="s_speak" type="checkbox"><span>Mira spricht laut</span></div>
+    <div class="chk"><input id="s_learn" type="checkbox"><span>Mira lernt selbst dazu</span></div>
     <label>Pers&ouml;nlichkeit</label>
     <textarea id="s_pers"></textarea>
     <label>Ged&auml;chtnis (ein Fakt pro Zeile)</label>
@@ -81,7 +83,7 @@ label{display:block;margin:12px 0 4px;color:var(--dim);font-size:13px}
 
 <script>
 (function(){
-  var DEF={key:"",model:"gemini-flash-lite-latest",tts:"gemini-3.8-flash-tts",voice:"Kore",speak:true,
+  var DEF={key:"",model:"gemini-flash-lite-latest",tts:"gemini-3.8-flash-tts",voice:"Kore",speak:true,learn:true,
     pers:"Du bist Mira, eine freundliche, kluge Assistentin im Jarvis-Stil. Antworte auf Deutsch, kurz und natuerlich (meist 1 bis 3 Saetze).",
     mem:"Name: Julien\nWohnort: Huerth bei Koeln"};
   function $(id){return document.getElementById(id)}
@@ -106,7 +108,7 @@ label{display:block;margin:12px 0 4px;color:var(--dim);font-size:13px}
 
   function openSet(){
     $("s_key").value=S.key;$("s_model").value=S.model;$("s_tts").value=S.tts;
-    $("s_voice").value=S.voice;$("s_speak").checked=!!S.speak;
+    $("s_voice").value=S.voice;$("s_speak").checked=!!S.speak;$("s_learn").checked=!!S.learn;
     $("s_pers").value=S.pers;$("s_mem").value=S.mem;
     $("set").classList.add("on");
   }
@@ -116,7 +118,7 @@ label{display:block;margin:12px 0 4px;color:var(--dim);font-size:13px}
   $("save").addEventListener("click",function(){
     S.key=$("s_key").value.trim();S.model=$("s_model").value.trim()||DEF.model;
     S.tts=$("s_tts").value.trim()||DEF.tts;S.voice=$("s_voice").value.trim()||DEF.voice;
-    S.speak=$("s_speak").checked;S.pers=$("s_pers").value;S.mem=$("s_mem").value;
+    S.speak=$("s_speak").checked;S.learn=$("s_learn").checked;S.pers=$("s_pers").value;S.mem=$("s_mem").value;
     persist();closeSet();add("a","Einstellungen gespeichert.");
   });
   $("clr").addEventListener("click",function(){hist=[];chat.innerHTML="";closeSet();});
@@ -147,6 +149,53 @@ label{display:block;margin:12px 0 4px;color:var(--dim);font-size:13px}
     if(!ans){hist.pop();throw new Error("Leere Antwort von Gemini.")}
     hist.push({role:"model",parts:[{text:ans}]});
     return ans;
+  }
+
+  /* ---------- Selbstlernen ---------- */
+  var pending=[],learning=false;
+  function norm(s){return s.toLowerCase().replace(/\s+/g," ").trim()}
+  function textOf(d){
+    var c=d.candidates&&d.candidates[0];
+    return (c&&c.content&&c.content.parts||[]).map(function(p){return p.text||""}).join("").trim();
+  }
+
+  async function consolidate(){
+    var lines=S.mem.split("\n").filter(function(l){return l.trim()});
+    if(lines.length<=40)return;
+    try{
+      var p="Fasse diese Liste von Fakten ueber den Nutzer zusammen. Entferne Doppeltes und Veraltetes, bei Widerspruch gilt die weiter unten stehende (neuere) Zeile. Maximal 30 Zeilen, gleiches Format, keine Erklaerungen, nur die Zeilen.\n\n"+S.mem;
+      var data=await gem(S.model,{contents:[{role:"user",parts:[{text:p}]}]});
+      var out=textOf(data).split("\n").map(function(l){return l.replace(/^[-*\s]+/,"").trim()}).filter(function(l){return l});
+      if(out.length>=3&&out.length<lines.length){S.mem=out.join("\n");persist()}
+    }catch(e){}
+  }
+
+  async function learn(){
+    if(learning||!pending.length)return;
+    learning=true;
+    var batch=pending.join("\n\n");pending=[];
+    try{
+      var p="Bekannte Fakten ueber den Nutzer:\n"+(S.mem||"(keine)")+"\n\nNeue Unterhaltung:\n"+batch+
+        "\n\nAufgabe: Finde NEUE, dauerhaft nuetzliche Fakten ueber den Nutzer (Vorlieben, Plaene, Gewohnheiten, Ziele, wichtige Personen, Projekte). Ignoriere Smalltalk, reine Fragen ohne Info, Passwoerter, Schluessel und Zahlungsdaten. Gib jeden neuen Fakt als eigene kurze Zeile im Format Stichwort: Wert aus. Gibt es nichts Neues, antworte nur mit NICHTS.";
+      var data=await gem(S.model,{contents:[{role:"user",parts:[{text:p}]}]});
+      var out=textOf(data);
+      if(out&&!/^NICHTS/i.test(out)){
+        var have=S.mem.split("\n").map(norm),added=[];
+        out.split("\n").forEach(function(line){
+          line=line.replace(/^[-*\s]+/,"").trim();
+          if(line.length<3||line.length>200)return;
+          if(have.indexOf(norm(line))>=0)return;
+          added.push(line);have.push(norm(line));
+        });
+        if(added.length){
+          S.mem=(S.mem?S.mem.replace(/\s+$/,"")+"\n":"")+added.join("\n");
+          persist();
+          add("n","Gemerkt: "+added.join("; "));
+          await consolidate();
+        }
+      }
+    }catch(e){}
+    learning=false;
   }
 
   function pcmToWav(b64,rate){
@@ -211,6 +260,10 @@ label{display:block;margin:12px 0 4px;color:var(--dim);font-size:13px}
       thinking=false;
       wait.textContent=ans;chat.scrollTop=chat.scrollHeight;
       if(S.speak){try{await speak(ans)}catch(e){talking=false;add("e","Stimme: "+e.message)}}
+      if(S.learn){
+        pending.push("Nutzer: "+text+"\nMira: "+ans.slice(0,200));
+        if(pending.length>=3||/merk(e)? dir|vergiss nicht/i.test(text))learn();
+      }
     }catch(e){
       thinking=false;
       wait.className="m e";wait.textContent=e.message;
